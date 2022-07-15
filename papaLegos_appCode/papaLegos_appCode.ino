@@ -136,10 +136,12 @@ void loop() {
 
           Cada velocidade é = (4095-2500)/9 => 177 aproximadamente
 
-          (9*177)+2500 = velocidade
+          (valores[1 ou 2]*177)+2500 = velocidade
 
           Porem pra ficar mais facil de controlar ele em uma velocidade baixa 
         eu deixei com 8 velocidade normais ate 3200 e a 9 velocidade como 4095 (turbo)
+
+          valores[1 ou 2]*77+2500
        ----------------------------------------------------------------------*/
 
       //cria uma variavel nova pq deu conflito int* com int[2]
