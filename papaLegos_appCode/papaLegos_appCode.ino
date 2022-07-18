@@ -142,6 +142,8 @@ void loop() {
         eu deixei com 8 velocidade normais ate 3200 e a 9 velocidade como 4095 (turbo)
 
           valores[1 ou 2]*77+2500
+
+          Acho que era melhor usar .map() porem não sabia que existia 
        ----------------------------------------------------------------------*/
 
       //cria uma variavel nova pq deu conflito int* com int[2]
