@@ -9,12 +9,12 @@
 
 BluetoothSerial SerialBT;
 
-//right
+// right
 int fd1 = 26;
 int fd2 = 27;
 int dpwm = 13;
 
-//left
+// left
 int fe1 = 25;
 int fe2 = 19;
 int epwm = 21;
@@ -23,7 +23,7 @@ void setup() {
   Serial.begin(115200);
   SerialBT.begin("Esp32 car");//nome do dispositivo
 
-  //define os pinos
+  // define os pinos
   pinMode(fe1, OUTPUT);
   pinMode(fe2, OUTPUT);
   pinMode(epwm, OUTPUT);
@@ -32,83 +32,83 @@ void setup() {
   pinMode(fd2, OUTPUT);
   pinMode(dpwm, OUTPUT);
 
-  //configuração para controlar a ponte H
+  // configuração para controlar a ponte H
   ledcSetup(0, 5000, 12);//canal para esquerdo
   ledcSetup(1, 5000, 12);//canal para o direito
   ledcAttachPin(epwm, 0);
   ledcAttachPin(dpwm, 1);
-  //inicia como 0
+  // inicia como 0
   ledcWrite(0, 0);
   ledcWrite(1, 0);
 }
 
-//gambiarrinha pra filtrar os dados bluetooth 
-//nao consegui filtrar a string recebida por bluetooth de outro jeito
+// gambiarrinha pra filtrar os dados bluetooth 
+// nao consegui filtrar a string recebida por bluetooth de outro jeito
 int contador = 0;
 String esq = "";
 String dir = "";
 
-//recebe a char do bt e separa ela em valor esquerdo e direito
+// recebe a char do bt e separa ela em valor esquerdo e direito
 void filtraDadosRecebidos(char a){
-  if( a == '[' and contador == 0){//inicio
+  if( a == '[' and contador == 0){// inicio
       contador = 1;
-    }else if(a != ',' and contador == 1){//valor do esquerdo
+    }else if(a != ',' and contador == 1){// valor do esquerdo
       esq += a;  
-    }else if(a == ',' and contador == 1){//virgula
+    }else if(a == ',' and contador == 1){// virgula
       contador = 2;  
-    }else if (a != ']' and contador == 2){//lado direito
+    }else if (a != ']' and contador == 2){// lado direito
         dir += a;
-    }else{//fim (quando ser igual a ])
+    }else{// fim (quando ser igual a ])
       contador = 0;
   }
 }
 
 int* setMovimento(int valores[]){
-  //recebe um vetor com os valores da potencia do motor
-  //[esquerdo, direito]
+  // recebe um vetor com os valores da potencia do motor
+  // [esquerdo, direito]
   
   if(valores[0] > 0){
-    //motor esquerdo frente
+    // motor esquerdo frente
     digitalWrite(fe1, HIGH);
     digitalWrite(fe2, LOW);
   }else if (valores[0] < 0){
-    //valor esquerdo pra tras
+    // valor esquerdo pra tras
     digitalWrite(fe1, LOW);
     digitalWrite(fe2, HIGH);
 
-    //retira o sinal de negativo pois a ponte H não tem valore negativo
+    // retira o sinal de negativo pois a ponte H não tem valore negativo
     valores[0] = valores[0]*-1;   
   }else{
-    //parado  
+    // parado  
     digitalWrite(fe1, LOW);
     digitalWrite(fe2, LOW);
   }
 
   if(valores[1] > 0){
-    //motor direito frente
+    // motor direito frente
     digitalWrite(fd1, HIGH);
     digitalWrite(fd2, LOW);
   }else if (valores[1] < 0){
-    //valor direito pra tras
+    // valor direito pra tras
     digitalWrite(fd1, LOW);
     digitalWrite(fd2, HIGH);
 
-    //retira o sinal de negativo pois a ponte H não tem valore negativo
+    // retira o sinal de negativo pois a ponte H não tem valore negativo
     valores[1] = valores[1]*-1;  
   }else{
-    //parado  
+    // parado  
     digitalWrite(fd1, LOW);
     digitalWrite(fd2, LOW);
   }
 
-  //retorna os valores sem os sinais negativos
+  // retorna os valores sem os sinais negativos
   return valores;
 }
 
 void loop() {
-  //enquanto ele estiver recebendo dados do bt ele repete o loop
+  // enquanto ele estiver recebendo dados do bt ele repete o loop
   if(SerialBT.available()){
-    //fitra a string recebida
+    // fitra a string recebida
     filtraDadosRecebidos(SerialBT.read());
 
     /* -----------------------------------------------------------------------
@@ -146,29 +146,29 @@ void loop() {
           Acho que era melhor usar .map() porem não sabia que existia 
        ----------------------------------------------------------------------*/
 
-      //cria uma variavel nova pq deu conflito int* com int[2]
+      // cria uma variavel nova pq deu conflito int* com int[2]
       int* val = setMovimento(valores);
 
-      //determina a potencia de cada motor
+      // determina a potencia de cada motor
       if(val[0] != 9){//velocidade 9 é turbo
         val[0] = (valores[0]*77)+2500;
       }else{
-        //turbo
+        // turbo
           val[0] = 4095;
       }
 
-      if(val[1] != 9){//velocidade 9 é turbo
+      if(val[1] != 9){// velocidade 9 é turbo
         val[1] = (valores[1]*77)+2500;
       }else{
-        //turbo
+        // turbo
           val[1] = 4095;
       }
 
-      //manda o comando pra ponte H
+      // manda o comando pra ponte H
       ledcWrite(0, val[0]);
       ledcWrite(1, val[1]);
 
-      //limpa as variaveis pro proximo loop
+      // limpa as variaveis pro proximo loop
       esq = "";
       dir = "";
     }
